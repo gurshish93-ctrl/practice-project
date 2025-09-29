@@ -1,12 +1,14 @@
 // LoginTwoColumnPrime.jsx
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { useNavigate } from "react-router-dom";
+import axios from "axios"; // Import axios
 import { InputText } from "primereact/inputtext";
 import { Password } from "primereact/password";
 import { Checkbox } from "primereact/checkbox";
 import { Button } from "primereact/button";
 import { Card } from "primereact/card";
 import { Divider } from "primereact/divider";
+import { Message } from "primereact/message"; // Import Message component
 
 // PrimeReact styles
 import "primereact/resources/themes/lara-light-blue/theme.css";
@@ -18,14 +20,37 @@ export default function LoginTwoColumnPrime({ onLogin, imageUrl = "/assets/login
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
-  const navigate = useNavigate(); // Initialize navigate
+  const [error, setError] = useState(null); // Add error state
+  const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (onLogin) {
-      onLogin();
+    setError(null); // Reset error state
+
+    try {
+      const response = await axios.post("http://127.0.0.1:8000/api/login/", {
+        username: email, // Django's User model uses username, so we send email as username
+        password: password,
+      });
+
+      if (response.status === 200) {
+        const { access, refresh } = response.data;
+        localStorage.setItem("access_token", access);
+        localStorage.setItem("refresh_token", refresh);
+
+        if (onLogin) {
+          onLogin();
+        }
+        navigate('/');
+      }
+    } catch (err) {
+      if (err.response && err.response.data) {
+        setError("Invalid credentials. Please try again.");
+      } else {
+        setError("An unexpected error occurred. Please try again later.");
+      }
+      console.error("Login failed:", err);
     }
-    navigate('/'); // Navigate to the main page
   };
 
   return (
@@ -53,6 +78,7 @@ export default function LoginTwoColumnPrime({ onLogin, imageUrl = "/assets/login
           </p>
 
           <form onSubmit={handleSubmit} className="p-fluid">
+            {error && <Message severity="error" text={error} className="mb-4" />}
             <div className="field">
               <label htmlFor="email">Email Address</label>
               <InputText

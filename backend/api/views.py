@@ -2,14 +2,14 @@ from rest_framework import generics, permissions, viewsets
 from rest_framework.response import Response
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.views import TokenObtainPairView
-from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import UserSerializer, RegisterSerializer, EmployeeSerializer
+from .serializers import UserSerializer, RegisterSerializer, EmployeeSerializer, MyTokenObtainPairSerializer
 from .models import Employee
 
 
 # ✅ Registration API
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
+    permission_classes = [permissions.AllowAny]
     serializer_class = RegisterSerializer
 
 
@@ -24,16 +24,8 @@ class UserView(generics.RetrieveAPIView):
 
 # ✅ Custom login (JWT)
 class CustomTokenObtainPairView(TokenObtainPairView):
-    """
-    Overrides the default login to also return user data.
-    """
-
-    def post(self, request, *args, **kwargs):
-        response = super().post(request, *args, **kwargs)
-        if response.status_code == 200:
-            user = User.objects.get(username=request.data["username"])
-            response.data["user"] = UserSerializer(user).data
-        return response
+    serializer_class = MyTokenObtainPairSerializer
+    permission_classes = [permissions.AllowAny]
 
 
 class EmployeeViewSet(viewsets.ModelViewSet):
