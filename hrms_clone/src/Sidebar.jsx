@@ -4,7 +4,7 @@ import { Button } from "primereact/button";
 
 export default function Sidebar({ onLogout }) {
   return (
-    <div className="h-screen w-64 bg-white border-r shadow-sm flex flex-col">
+    <div className="h-screen w-56 bg-white border-r shadow-sm flex flex-col">
       {/* Menu */}
       <nav className="flex-1 p-4">
         {/* Logo / Title */}
